@@ -149,15 +149,9 @@ class Line {
 	 */
 	get formula () {
 		/**
-		 *          y2 - y1
-		 * y - y1 = ------- (x - x1)
-		 *          x2 - x1
-		 */
-
-		/**
-		 * y2 - y1                 y2 - y1
-		 * ------- (x) - y + (y1 - ------- (x1))
-		 * x2 - x1                 x2 - x1
+		 *           y2 - y1               y2 - y1                   y2 - y1
+		 * y - y1 = --------- (x - x1) => --------- (x) - y + (y1 - --------- (x1))
+		 *           x2 - x1               x2 - x1                   x2 - x1
 		 */
 		return new Formula(`${this.slope}x - y + ${this.slope * -this.x1 + this.y1}`);
 	}
