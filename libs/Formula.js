@@ -63,7 +63,7 @@ class Formula {
 	}
 
 	/**
-	 * JavaScriptのソース形式に変換したものを返します
+	 * JavaScriptのソースに変換したものを返します
 	 * 
 	 * @param {Object<string, Number>} args
 	 * @return {String}
@@ -114,7 +114,7 @@ class Point {
 
 class Line {
 	/**
-	 * 指定された線と点間の距離を返します
+	 * 指定された線分と点の距離を返します
 	 * 
 	 * @param {Line} origin
 	 * @param {Point} point
@@ -122,15 +122,20 @@ class Line {
 	 * @return {Number}
 	 */
 	static getDistanceFromPoint (origin, point) {
+		const { a, b, c } = origin;
+		const { x, y } = point;
+
+		const [ mx, Mx ] = [ Math.min(origin.x1, origin.x2), Math.max(origin.x1, origin.x2) ];
+
+		// 2点間の距離の公式
+		if (x < Math.min(origin.x1, origin.x2)) return new Line(point, new Point(mx, origin.getY(mx))).distance;
+		if (Math.max(origin.x1, origin.x2) < x) return new Line(point, new Point(Mx, origin.getY(Mx))).distance;
+
 		/**
 		 * |ax + by + c|
 		 * -------------
 		 *  √(a² + b²)
 		 */
-
-		const { a, b, c } = origin;
-		const { x, y } = point;
-
 		return new Formula("|ax + by + c| / √((a)**2 + (b)**2)").value({ a, x, b, y, c });
 	}
 
@@ -148,7 +153,7 @@ class Line {
 
 		this.a = this.slope;
 		this.b = -1;
-		this.c = (this.slope * -this.x1) + this.y1;
+		this.c = this.y1 + (this.slope * -this.x1);
 	}
 
 	/** 描画関数 */
@@ -176,10 +181,46 @@ class Line {
 	 */
 	get formula () {
 		/**
-		 *           y2 - y1               y2 - y1                   y2 - y1
-		 * y - y1 = --------- (x - x1) => --------- (x) - y + (y1 - --------- (x1))
-		 *           x2 - x1               x2 - x1                   x2 - x1
+		 *           y2 - y1                   y2 - y1                   y2 - y1
+		 * y - y1 = --------- (x - x1)   =>   --------- (x) - y + (y1 - --------- (x1))
+		 *           x2 - x1                   x2 - x1                   x2 - x1
+		 * 
+		 * 
+		 * =>   mx - y + (y1 - mx1)   =>   ax + by + c
+		 * 
 		 */
 		return new Formula(`${this.a}x + ${this.b}y + ${this.c}`);
+	}
+
+	
+
+	/**
+	 * 指定されたyの値に対応するxの値を返します
+	 * 
+	 * @param {Number} y
+	 * @return {Number}
+	 */
+	getX (y = 0) {
+		/**
+		 *                             -by - c
+		 * ax + by + c = 0   =>   x = ----------
+		 *                                 a
+		 */
+		return new Formula(`(${-this.b}y - ${this.c}) / ${this.a}`).value({ y });
+	}
+
+	/**
+	 * 指定されたxの値に対応するyの値を返します
+	 * 
+	 * @param {Number} x
+	 * @return {Number}
+	 */
+	getY (x = 0) {
+		/**
+		 *                             -ax - c
+		 * ax + by + c = 0   =>   y = ----------
+		 *                                 b
+		 */
+		return new Formula(`(${-this.a}x - ${this.c}) / ${this.b}`).value({ x });
 	}
 }
