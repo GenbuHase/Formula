@@ -1,6 +1,8 @@
 /**
- * 公式の取り扱いをサポートします。
+ * 公式の取り扱いをサポートするクラス
+ * 
  * @class Formula
+ * @author Genbu Hase
  */
 class Formula {
 	static get Symbols () {
@@ -76,6 +78,12 @@ class Formula {
 	}
 }
 
+/**
+ * 点を取り扱うクラス
+ * 
+ * @class Point
+ * @author Genbu Hase
+ */
 class Point {
 	/**
 	 * 指定された点に関して対称な点を返します
@@ -112,6 +120,12 @@ class Point {
 	}
 }
 
+/**
+ * 線分を取り扱うクラス
+ * 
+ * @class Line
+ * @author Genbu Hase
+ */
 class Line {
 	/**
 	 * 指定された線分と点の距離を返します
