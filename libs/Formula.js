@@ -1,7 +1,12 @@
+/**
+ * 公式の取り扱いをサポートします。
+ * @class Formula
+ */
 class Formula {
 	static get Symbols () {
 		return {
-			"√": "Math.sqrt"
+			"√": "Math.sqrt",
+			"\\|([^|]+)\\|": "Math.abs($1)"
 		}
 	}
 
@@ -15,7 +20,7 @@ class Formula {
 		if (!equation) throw new TypeError("equation must be String");
 
 		this.equation = equation;
-		this.args = equation.replace(/\s/g, "").match(/[^0-9.+\-*\/=]+/g);
+		this.args = equation.replace(/\s/g, "").match(/[A-Z]/ig).filter((arg, index, collection) => collection.indexOf(arg) === index);
 	}
 
 	/**
@@ -39,12 +44,10 @@ class Formula {
 				.replace(new RegExp(arg, "g"), value);
 		}
 
-		const reversePrefixes = (result.match(/(\+ ?\-|\- ?\-)/g) || []).filter(prefix => prefix.replace(/\s/g, ""));
+		const reversePrefixes = (result.match(/(\+ ?\-|\- ?\-)/g) || []);
 		for (const prefix of reversePrefixes) {
-			result = result.replace(prefix, prefix == "+-" ? "- " : "+ ");
+			result = result.replace(prefix, prefix.replace(/\s/g, "") == "+-" ? "- " : "+ ");
 		}
-
-		for (const symbol in Formula.Symbols) result = result.replace(new RegExp(symbol, "g"), Formula.Symbols[symbol]);
 
 		return result;
 	}
@@ -56,7 +59,20 @@ class Formula {
 	 * @return {Number}
 	 */
 	value (args) {
-		return new Function("return " + this.substitute(args))()
+		return new Function('"use strict"; return ' + this.toSource(args))();
+	}
+
+	/**
+	 * JavaScriptのソース形式に変換したものを返します
+	 * 
+	 * @param {Object<string, Number>} args
+	 * @return {String}
+	 */
+	toSource (args) {
+		let formatted = this.substitute(args);
+		for (const symbol in Formula.Symbols) formatted = formatted.replace(new RegExp(symbol, "g"), Formula.Symbols[symbol]);
+		
+		return formatted;
 	}
 }
 
@@ -76,22 +92,6 @@ class Point {
 		return new Point(Ox + (Ox - x), Oy + (Oy - y));
 	}
 
-	/**
-	 * 指定された直線に関して対称な点を返します
-	 * 
-	 * @param {Line} origin
-	 * @param {Point} point
-	 * 
-	 * @return {Point}
-	 */
-	static getSymmetricByLine (origin, point) {
-		/**
-		 * |ax + by + c|
-		 * -------------
-		 *    √a² + b²
-		 */
-	}
-
 
 
 	/**
@@ -108,11 +108,34 @@ class Point {
 	/** 描画関数 */
 	draw () {
 		point(this.x, this.y);
-		text(`(${this.x}, ${this.y})`, this.x + 20, this.y);
+		text(`(${this.x}, ${this.y})`, this.x + 5, this.y - 5);
 	}
 }
 
 class Line {
+	/**
+	 * 指定された線と点間の距離を返します
+	 * 
+	 * @param {Line} origin
+	 * @param {Point} point
+	 * 
+	 * @return {Number}
+	 */
+	static getDistanceFromPoint (origin, point) {
+		/**
+		 * |ax + by + c|
+		 * -------------
+		 *  √(a² + b²)
+		 */
+
+		const { a, b, c } = origin;
+		const { x, y } = point;
+
+		return new Formula("|ax + by + c| / √((a)**2 + (b)**2)").value({ a, x, b, y, c });
+	}
+
+
+
 	/**
 	 * 直線を生成します
 	 * 
@@ -122,6 +145,10 @@ class Line {
 	constructor (point1, point2) {
 		this.x1 = point1.x, this.y1 = point1.y;
 		this.x2 = point2.x, this.y2 = point2.y;
+
+		this.a = this.slope;
+		this.b = -1;
+		this.c = (this.slope * -this.x1) + this.y1;
 	}
 
 	/** 描画関数 */
@@ -153,6 +180,6 @@ class Line {
 		 * y - y1 = --------- (x - x1) => --------- (x) - y + (y1 - --------- (x1))
 		 *           x2 - x1               x2 - x1                   x2 - x1
 		 */
-		return new Formula(`${this.slope}x - y + ${this.slope * -this.x1 + this.y1}`);
+		return new Formula(`${this.a}x + ${this.b}y + ${this.c}`);
 	}
 }
