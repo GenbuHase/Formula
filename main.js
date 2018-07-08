@@ -1,14 +1,10 @@
 const points = [
-	new Point(50, 50),
-	new Point(80, 90),
-	new Point(80, 120),
-	new Point(150, 30)
+	new Point(100, 50),
+	new Point(800, 600)
 ];
 
 const lines = [
-	new Line(points[0], points[1]),
-	new Line(points[1], points[2]),
-	new Line(points[2], points[3])
+	new Line(points[0], points[1])
 ];
 
 
@@ -22,4 +18,9 @@ function draw () {
 
 	for (const point of points) point.draw();
 	for (const line of lines) line.draw();
+
+	let p = new Point(mouseX, mouseY)
+	p.draw();
+	
+	text(Line.getDistanceFromPoint(lines[0], p), p.x + 5, p.y + 10);
 }
